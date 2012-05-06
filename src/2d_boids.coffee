@@ -7,7 +7,7 @@ root.overlap  = 10
 root.start = () ->
   canvas  = document.getElementById "boids"
   context = canvas.getContext "2d"
-  boids = [new Boid]
+  boids = [new Boid, new Boid]
   frame = () ->
     # Draw the boids
     root.draw(context, boids)
@@ -24,9 +24,10 @@ root.draw = (context, boids) ->
 
 class Boid
   constructor: () ->
-    @x = 0
-    @y = 0
-    @direction = 0
+    @x = Math.random() * root.width
+    @y = Math.random() * root.height
+    @direction = Math.random() * Math.PI * 2
+    @speed = 4
   
   draw: (context) ->
     context.beginPath()
@@ -35,8 +36,8 @@ class Boid
     context.fill()
   
   move: (boids) ->
-    @x -= 3
-    @y -= 3
+    @x += Math.sin(@direction) * @speed
+    @y += Math.cos(@direction) * @speed
     if @x > root.width + root.overlap
       @x = -root.overlap
     if @y > root.height + root.overlap
