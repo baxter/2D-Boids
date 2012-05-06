@@ -1,7 +1,8 @@
 root = this
 
-root.width  = 530
-root.height = 430
+root.width    = 530
+root.height   = 430
+root.overlap  = 10
 
 root.start = () ->
   canvas  = document.getElementById "boids"
@@ -34,9 +35,13 @@ class Boid
     context.fill()
   
   move: (boids) ->
-    @x += 3
-    @y += 3
-    if @x > root.width + 20
-      @x = -20
-    if @y > root.height + 20
-      @y = -20
+    @x -= 3
+    @y -= 3
+    if @x > root.width + root.overlap
+      @x = -root.overlap
+    if @y > root.height + root.overlap
+      @y = -root.overlap
+    if @x < -root.overlap
+      @x = root.width + root.overlap
+    if @y < -root.overlap
+      @y = root.height + root.overlap
