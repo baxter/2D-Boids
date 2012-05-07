@@ -1,13 +1,14 @@
 root = this
 
 root.number         = 20
-root.width          = 530
+root.width          = 830
 root.height         = 430
-root.wrap_around    = 50
+root.wrap_around    = 20
 root.nearby_dist    = 100
 root.too_close_dist = 20
 
-root.draw_between_nearby = true
+root.draw_between_nearby = false
+root.draw_debug = false
 root.match_direction = true
 
 initialised = false
@@ -21,8 +22,8 @@ root.start = () ->
   
   frame = () ->
     _.each(root.boids, (b) ->
+      neighbours = near_to(b)
       if match_direction
-        neighbours = near_to(b)
         avg_direction = average(_.collect(neighbours, (neighbour) -> neighbour.direction))
         b.rotate_towards(avg_direction)
       
@@ -75,10 +76,11 @@ class Boid
       context.beginPath()
       _.each(near_to(this),
         (boid) ->
-          context.strokeStyle = "lawngreen"
-          context.moveTo(this.x, this.y)
-          context.lineTo(boid.x, boid.y)
-          context.stroke()
+          unless boid.id > this.id # This is to prevent drawing multiple lines between the same two boids
+            context.strokeStyle = "lawngreen"
+            context.moveTo(this.x, this.y)
+            context.lineTo(boid.x, boid.y)
+            context.stroke()
         , this
       )
       context.closePath()
@@ -88,10 +90,11 @@ class Boid
     # Move to the appropriate location
     context.translate(@x, @y)
     # Draw some explanatory text
-    context.fillStyle = "darkgray"
-    context.fillText("i: #{@id}", 15, -6)
-    context.fillText("x: #{Math.round(@x)}", 15, 3)
-    context.fillText("y: #{Math.round(@y)}", 15, 13)
+    if draw_debug
+      context.fillStyle = "darkgray"
+      context.fillText("i: #{@id}", 15, -6)
+      context.fillText("x: #{Math.round(@x)}", 15, 3)
+      context.fillText("y: #{Math.round(@y)}", 15, 13)
     context.fillStyle = "black"
     context.strokeStyle = "black"
     # Rotate to the appropriate direction
@@ -124,6 +127,13 @@ class Boid
       @direction += @direction_change_speed
     if direction < @direction
       @direction -= @direction_change_speed
+  
+  move_away_from: (direction) ->
+    if direction > @direction
+      @direction -= @direction_change_speed
+    if direction < @direction
+      @direction += @direction_change_speed
+    
   
   direction_degrees: () ->
     Math.floor(@direction * 57.2957795)
