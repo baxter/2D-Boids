@@ -1,16 +1,19 @@
 root = this
 
-root.number         = 20
+root.number         = 30
 root.width          = 830
-root.height         = 430
+root.height         = 530
 root.wrap_around    = 20
 root.nearby_dist    = 100
-root.too_close_dist = 25
+root.too_close_dist = 30
 
 root.draw_between_nearby = false
 root.draw_debug = false
-root.keep_distance = true
-root.match_direction = true
+
+root.boids_keep_distance = true
+root.boids_match_direction = true
+root.boids_move_toward_centre = true
+
 root.random_speed = false
 
 initialised = false
@@ -31,12 +34,20 @@ root.start = () ->
       too_close = near_to(b, too_close_dist)
       
       # Boids want to move together, so match direction with nearby boids
-      if match_direction
+      if boids_match_direction
         b.rotate_towards(average_direction(nearby))
       
       # Boids want to keep their distance from each other, so move in the opposite direction of very close boids
-      if keep_distance
+      if boids_keep_distance
         b.rotate_away_from(average_direction(too_close))
+      
+      # Boids want to move toward the centre of the flock, so move in the direction of the average of all boids
+      if boids_move_toward_centre
+        b.rotate_towards(
+          direction_of_location(
+            b, average_location(b)
+          )
+        )
       
       # Move the boids
       b.move()
@@ -44,7 +55,7 @@ root.start = () ->
     # Draw the boids
     root.draw(context, root.boids)
   
-  @intervalId = setInterval(frame, 20)
+  @intervalId = setInterval(frame, 30)
 
 root.stop = () ->
   clearInterval @intervalId
@@ -58,21 +69,51 @@ root.draw = (context, boids) ->
   context.clearRect(0,0,root.width,root.height)
   _.each(boids, (b) -> b.draw(context))
 
-root.near_to = (target, distance=nearby_dist) ->
-  _.filter(root.boids, (boid) ->
-    boid.id != target.id && (distance_between(target, boid) < distance)
-  )
+# Returns all boids apart from target
+
+root.other_boids = (target) ->
+  _.reject(root.boids, (boid) -> boid.id == target.id)
+
+# Find the distance between two objects, provided both objects have x and y properties  
 
 root.distance_between = (a, b) ->
   dx = Math.abs(a.x - b.x)
   dy = Math.abs(a.y - b.y)
   Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
 
+# Finds the average value of an array of numbers
+
 root.average = (array) ->
   _.reduce(array, ((memo, element) -> memo + element), 0) / array.length
 
+# Find the average direction of an array, provided all elements have a direction property
+
 root.average_direction = (array) ->
   average(_.collect(array, (element) -> element.direction))
+
+# Finds boids that are near target, excluding target
+
+root.near_to = (target, distance=nearby_dist) ->
+  _.filter(root.other_boids(target), (boid) ->
+    distance_between(target, boid) < distance
+  )
+
+# Finds the average location of all boids, exluding target
+
+root.average_location = (target) ->
+  x = average(_.collect(root.other_boids(target), (boid) -> boid.x ))
+  y = average(_.collect(root.other_boids(target), (boid) -> boid.y ))
+  {
+    "x": x,
+    "y": y
+  }
+
+# Finds the direction of a location from entity to location
+
+root.direction_of_location = (entity, target_location) ->
+  x = Math.abs(entity.x - target_location.x)
+  y = Math.abs(entity.y - target_location.y)
+  Math.atan2(y, x)
 
 # The boid itself, every boid has a random starting location and random starting direction.
 # They also have a movement speed and a rotation speed
@@ -85,8 +126,8 @@ class Boid
     if random_speed
       @speed = (Math.random() * 2) + 1
     else
-      @speed = 2
-    @rotation_speed = 0.01
+      @speed = 3
+    @rotation_speed = 0.02
   
   draw: (context) ->
     
