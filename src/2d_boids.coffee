@@ -5,11 +5,13 @@ root.width          = 830
 root.height         = 430
 root.wrap_around    = 20
 root.nearby_dist    = 100
-root.too_close_dist = 20
+root.too_close_dist = 25
 
 root.draw_between_nearby = false
 root.draw_debug = false
+root.keep_distance = true
 root.match_direction = true
+root.random_speed = false
 
 initialised = false
 
@@ -21,11 +23,20 @@ root.start = () ->
     initialised   = true
   
   frame = () ->
+    # Update the boids
     _.each(root.boids, (b) ->
-      neighbours = near_to(b)
+      # Find boids that are neighbours
+      nearby = near_to(b, nearby_dist)
+      # Find boids that are too close
+      too_close = near_to(b, too_close_dist)
+      
+      # Boids want to move together, so match direction with nearby boids
       if match_direction
-        avg_direction = average(_.collect(neighbours, (neighbour) -> neighbour.direction))
-        b.rotate_towards(avg_direction)
+        b.rotate_towards(average_direction(nearby))
+      
+      # Boids want to keep their distance from each other, so move in the opposite direction of very close boids
+      if keep_distance
+        b.rotate_away_from(average_direction(too_close))
       
       # Move the boids
       b.move()
@@ -47,9 +58,9 @@ root.draw = (context, boids) ->
   context.clearRect(0,0,root.width,root.height)
   _.each(boids, (b) -> b.draw(context))
 
-root.near_to = (target) ->
+root.near_to = (target, distance=nearby_dist) ->
   _.filter(root.boids, (boid) ->
-    boid.id != target.id && (distance_between(target, boid) < root.nearby_dist)
+    boid.id != target.id && (distance_between(target, boid) < distance)
   )
 
 root.distance_between = (a, b) ->
@@ -60,13 +71,22 @@ root.distance_between = (a, b) ->
 root.average = (array) ->
   _.reduce(array, ((memo, element) -> memo + element), 0) / array.length
 
+root.average_direction = (array) ->
+  average(_.collect(array, (element) -> element.direction))
+
+# The boid itself, every boid has a random starting location and random starting direction.
+# They also have a movement speed and a rotation speed
+
 class Boid
   constructor: (@id) ->
     @x = Math.random() * root.width
     @y = Math.random() * root.height
     @direction = Math.random() * Math.PI * 2
-    @speed = 2
-    @direction_change_speed = 0.005
+    if random_speed
+      @speed = (Math.random() * 2) + 1
+    else
+      @speed = 2
+    @rotation_speed = 0.01
   
   draw: (context) ->
     
@@ -121,19 +141,25 @@ class Boid
       @x = root.width + root.wrap_around
     if @y < -root.wrap_around
       @y = root.height + root.wrap_around
+    
+  # Rotate towards a particular direction.
+  # Don't bother rotating if the direction is very similar to the current direction.
+  # This helps to stop boids from flying in circles
+  # Rotate towards moves at half the speed of rotate away from. The reason being that if we are moving away from a direction we are probably avoiding a collision, and it looks better
   
   rotate_towards: (direction) ->
-    if direction > @direction
-      @direction += @direction_change_speed
-    if direction < @direction
-      @direction -= @direction_change_speed
+    if (direction - @rotation_speed) < @direction < (direction + @rotation_speed)
+      return @direction
+    else if direction > @direction
+      @direction += (@rotation_speed / 2.0)
+    else if direction < @direction
+      @direction -= (@rotation_speed / 2.0)
   
-  move_away_from: (direction) ->
+  rotate_away_from: (direction) ->
     if direction > @direction
-      @direction -= @direction_change_speed
+      @direction -= @rotation_speed
     if direction < @direction
-      @direction += @direction_change_speed
-    
+      @direction += @rotation_speed
   
   direction_degrees: () ->
     Math.floor(@direction * 57.2957795)
