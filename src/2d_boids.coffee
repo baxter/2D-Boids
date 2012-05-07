@@ -65,9 +65,16 @@ root.reset = () ->
   initialised = false
   root.draw(root.context, [])
 
-root.draw = (context, boids) ->
+root.draw = (context=root.context, boids=root.boids) ->
   context.clearRect(0,0,root.width,root.height)
   _.each(boids, (b) -> b.draw(context))
+
+root.toggle = (property) ->
+  if root[property]
+    root[property] = false
+  else
+    root[property] = true
+  root.draw()
 
 # Returns all boids apart from target
 
