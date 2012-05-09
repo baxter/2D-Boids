@@ -15,24 +15,24 @@
     <canvas id="boids" width="830" height="530"></canvas>
     <div id="controls">
       <p>
-        <a href="javascript:void(0)" onclick="start()">Start</a> 
-        <a href="javascript:void(0)" onclick="stop()">Stop</a> 
-        <a href="javascript:void(0)" onclick="stop(); reset()">Reset</a>
+        <a href="javascript:void(0)" onclick="boids_2d.start()">Start</a> 
+        <a href="javascript:void(0)" onclick="boids_2d.stop()">Stop</a> 
+        <a href="javascript:void(0)" onclick="boids_2d.stop(); boids_2d.reset()">Reset</a>
       </p>
       <p>
-        <input id="boids_match_direction" type="checkbox" checked="yes" onclick="toggle('boids_match_direction')">
+        <input id="boids_match_direction" type="checkbox" checked="yes" onclick="boids_2d.toggle('boids_match_direction')">
         <label for="boids_match_direction">Boids like travelling in the same direction as their neighbours</label>
       </p>
       <p>
-        <input id="boids_keep_distance" type="checkbox" checked="yes" onclick="toggle('boids_keep_distance')">
+        <input id="boids_keep_distance" type="checkbox" checked="yes" onclick="boids_2d.toggle('boids_keep_distance')">
         <label for="boids_keep_distance">Boids dislike being too close to each other</label>
       </p>
       <p>
-        <input id="boids_move_toward_centre" type="checkbox" checked="yes" onclick="toggle('boids_move_toward_centre')">
+        <input id="boids_move_toward_centre" type="checkbox" checked="yes" onclick="boids_2d.toggle('boids_move_toward_centre')">
         <label for="boids_move_toward_centre">Boids like to move toward the centre of the flock</label>
       </p>
       <p>
-        <input id="draw_between_nearby" type="checkbox" onclick="toggle('draw_between_nearby')">
+        <input id="draw_between_nearby" type="checkbox" onclick="boids_2d.toggle('draw_between_nearby')">
         <label for="draw_between_nearby">Draw lines between nearby boids</label>
       </p>
     </div>

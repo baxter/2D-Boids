@@ -1,48 +1,54 @@
 root = this
+root.boids_2d = {}
 
-root.number         = 30
-root.width          = 830
-root.height         = 530
-root.wrap_around    = 20
-root.nearby_dist    = 100
-root.too_close_dist = 30
+boids_2d.number         = 30
+boids_2d.width          = 830
+boids_2d.height         = 530
+boids_2d.wrap_around    = 20
+boids_2d.nearby_dist    = 100
+boids_2d.too_close_dist = 30
 
-root.draw_between_nearby = false
-root.draw_debug = false
+boids_2d.draw_between_nearby = false
+boids_2d.draw_debug = false
 
-root.boids_keep_distance = true
-root.boids_match_direction = true
-root.boids_move_toward_centre = true
+boids_2d.boids_keep_distance = true
+boids_2d.boids_match_direction = true
+boids_2d.boids_move_toward_centre = true
 
-root.random_speed = false
+boids_2d.random_speed = false
 
 initialised = false
+canvas = context = boids = null
 
-root.start = () ->
+boids_2d.init = () ->
+  canvas   = document.getElementById "boids"
+  context  = canvas.getContext "2d"
+  boids_2d.boids    = (new Boid(n) for n in [0...boids_2d.number]) # [new Boid, new Boid, new Boid]
+  boids_2d.draw(context, boids_2d.boids)
+  initialised   = true
+
+boids_2d.start = () ->
   unless initialised
-    root.canvas   = document.getElementById "boids"
-    root.context  = canvas.getContext "2d"
-    root.boids    = (new Boid(n) for n in [0...root.number]) # [new Boid, new Boid, new Boid]
-    initialised   = true
+    boids_2d.init()
   
   frame = () ->
     # Update the boids
-    _.each(root.boids, (b) ->
+    _.each(boids_2d.boids, (b) ->
       # Find boids that are neighbours
-      nearby = near_to(b, nearby_dist)
+      nearby = near_to(b, boids_2d.nearby_dist)
       # Find boids that are too close
-      too_close = near_to(b, too_close_dist)
+      too_close = near_to(b, boids_2d.too_close_dist)
       
       # Boids want to move together, so match direction with nearby boids
-      if boids_match_direction
+      if boids_2d.boids_match_direction
         b.rotate_towards(average_direction(nearby))
       
       # Boids want to keep their distance from each other, so move in the opposite direction of very close boids
-      if boids_keep_distance
+      if boids_2d.boids_keep_distance
         b.rotate_away_from(average_direction(too_close))
       
       # Boids want to move toward the centre of the flock, so move in the direction of the average of all boids
-      if boids_move_toward_centre
+      if boids_2d.boids_move_toward_centre
         b.rotate_towards(
           direction_of_location(
             b, average_location(b)
@@ -53,63 +59,64 @@ root.start = () ->
       b.move()
     )
     # Draw the boids
-    root.draw(context, root.boids)
+    boids_2d.draw(context, boids_2d.boids)
   
   @intervalId = setInterval(frame, 30)
 
-root.stop = () ->
+boids_2d.stop = () ->
   clearInterval @intervalId
 
-root.reset = () ->
-  root.stop()
+boids_2d.reset = () ->
+  boids_2d.stop()
   initialised = false
-  root.draw(root.context, [])
+  boids_2d.draw(context, [])
 
-root.draw = (context=root.context, boids=root.boids) ->
-  context.clearRect(0,0,root.width,root.height)
+boids_2d.draw = (context=context, boids=boids_2d.boids) ->
+  context.clearRect(0,0,boids_2d.width,boids_2d.height)
+  _.each(boids, (b) -> b.draw_nearby_lines(context)) if boids_2d.draw_between_nearby
   _.each(boids, (b) -> b.draw(context))
 
-root.toggle = (property) ->
-  if root[property]
-    root[property] = false
+boids_2d.toggle = (property) ->
+  if boids_2d[property]
+    boids_2d[property] = false
   else
-    root[property] = true
-  root.draw()
+    boids_2d[property] = true
+  boids_2d.draw(context)
 
 # Returns all boids apart from target
 
-root.other_boids = (target) ->
-  _.reject(root.boids, (boid) -> boid.id == target.id)
+boids_2d.other_boids = (target) ->
+  _.reject(boids_2d.boids, (boid) -> boid.id == target.id)
 
 # Find the distance between two objects, provided both objects have x and y properties  
 
-root.distance_between = (a, b) ->
+distance_between = (a, b) ->
   dx = Math.abs(a.x - b.x)
   dy = Math.abs(a.y - b.y)
   Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
 
 # Finds the average value of an array of numbers
 
-root.average = (array) ->
+average = (array) ->
   _.reduce(array, ((memo, element) -> memo + element), 0) / array.length
 
 # Find the average direction of an array, provided all elements have a direction property
 
-root.average_direction = (array) ->
+average_direction = (array) ->
   average(_.collect(array, (element) -> element.direction))
 
 # Finds boids that are near target, excluding target
 
-root.near_to = (target, distance=nearby_dist) ->
-  _.filter(root.other_boids(target), (boid) ->
+near_to = (target, distance=boids_2d.nearby_dist) ->
+  _.filter(boids_2d.other_boids(target), (boid) ->
     distance_between(target, boid) < distance
   )
 
 # Finds the average location of all boids, exluding target
 
-root.average_location = (target) ->
-  x = average(_.collect(root.other_boids(target), (boid) -> boid.x ))
-  y = average(_.collect(root.other_boids(target), (boid) -> boid.y ))
+average_location = (target) ->
+  x = average(_.collect(boids_2d.other_boids(target), (boid) -> boid.x ))
+  y = average(_.collect(boids_2d.other_boids(target), (boid) -> boid.y ))
   {
     "x": x,
     "y": y
@@ -117,7 +124,7 @@ root.average_location = (target) ->
 
 # Finds the direction of a location from entity to location
 
-root.direction_of_location = (entity, target_location) ->
+direction_of_location = (entity, target_location) ->
   x = Math.abs(entity.x - target_location.x)
   y = Math.abs(entity.y - target_location.y)
   Math.atan2(y, x)
@@ -127,10 +134,10 @@ root.direction_of_location = (entity, target_location) ->
 
 class Boid
   constructor: (@id) ->
-    @x = Math.random() * root.width
-    @y = Math.random() * root.height
+    @x = Math.random() * boids_2d.width
+    @y = Math.random() * boids_2d.height
     @direction = Math.random() * Math.PI * 2
-    if random_speed
+    if boids_2d.random_speed
       @speed = (Math.random() * 2) + 1
     else
       @speed = 3
@@ -138,27 +145,11 @@ class Boid
   
   draw: (context) ->
     
-    # Draw lines between nearby boids
-    if draw_between_nearby
-      context.save()
-      context.beginPath()
-      _.each(near_to(this),
-        (boid) ->
-          unless boid.id > this.id # This is to prevent drawing multiple lines between the same two boids
-            context.strokeStyle = "lawngreen"
-            context.moveTo(this.x, this.y)
-            context.lineTo(boid.x, boid.y)
-            context.stroke()
-        , this
-      )
-      context.closePath()
-      context.restore()
-    
     context.save()
     # Move to the appropriate location
     context.translate(@x, @y)
     # Draw some explanatory text
-    if draw_debug
+    if boids_2d.draw_debug
       context.fillStyle = "darkgray"
       context.fillText("i: #{@id}", 15, -6)
       context.fillText("x: #{Math.round(@x)}", 15, 3)
@@ -176,19 +167,33 @@ class Boid
     context.closePath()
     context.fill()
     context.restore()
-    
+  
+  draw_nearby_lines: (context) ->
+    context.save()
+    context.beginPath()
+    _.each(near_to(this),
+      (boid) ->
+        unless boid.id > this.id # This is to prevent drawing multiple lines between the same two boids
+          context.strokeStyle = "lawngreen"
+          context.moveTo(this.x, this.y)
+          context.lineTo(boid.x, boid.y)
+          context.stroke()
+      , this
+    )
+    context.closePath()
+    context.restore()
   
   move: () ->
     @x += Math.cos(@direction) * @speed
     @y += Math.sin(@direction) * @speed
-    if @x > root.width + root.wrap_around
-      @x = -root.wrap_around
-    if @y > root.height + root.wrap_around
-      @y = -root.wrap_around
-    if @x < -root.wrap_around
-      @x = root.width + root.wrap_around
-    if @y < -root.wrap_around
-      @y = root.height + root.wrap_around
+    if @x > boids_2d.width + boids_2d.wrap_around
+      @x = -boids_2d.wrap_around
+    if @y > boids_2d.height + boids_2d.wrap_around
+      @y = -boids_2d.wrap_around
+    if @x < -boids_2d.wrap_around
+      @x = boids_2d.width + boids_2d.wrap_around
+    if @y < -boids_2d.wrap_around
+      @y = boids_2d.height + boids_2d.wrap_around
     
   # Rotate towards a particular direction.
   # Don't bother rotating if the direction is very similar to the current direction.
