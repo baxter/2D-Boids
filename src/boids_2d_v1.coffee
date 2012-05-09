@@ -18,6 +18,7 @@ boids_2d_v1.boids_move_toward_centre = true
 boids_2d_v1.random_speed = false
 
 initialised = false
+started = false
 canvas = context = boids = null
 
 boids_2d_v1.init = () ->
@@ -28,6 +29,11 @@ boids_2d_v1.init = () ->
   initialised   = true
 
 boids_2d_v1.start = () ->
+  if started
+    return false
+  
+  started = true  
+  
   unless initialised
     boids_2d_v1.init()
   
@@ -65,11 +71,11 @@ boids_2d_v1.start = () ->
 
 boids_2d_v1.stop = () ->
   clearInterval @intervalId
+  started = false
 
 boids_2d_v1.reset = () ->
   boids_2d_v1.stop()
-  initialised = false
-  boids_2d_v1.draw(context, [])
+  boids_2d_v1.init()
 
 boids_2d_v1.draw = (context=context, boids=boids_2d_v1.boids) ->
   context.clearRect(0,0,boids_2d_v1.width,boids_2d_v1.height)
