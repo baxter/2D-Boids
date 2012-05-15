@@ -97,8 +97,8 @@ boids_2d_v1.other_boids = (target) ->
 # Find the distance between two objects, provided both objects have x and y properties  
 
 distance_between = (a, b) ->
-  dx = Math.abs(a.x - b.x)
-  dy = Math.abs(a.y - b.y)
+  dx = a.x - b.x
+  dy = a.y - b.y
   Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
 
 # Finds the average value of an array of numbers
