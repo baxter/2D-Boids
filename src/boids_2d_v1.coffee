@@ -130,9 +130,9 @@ average_location = (target) ->
 
 # Finds the direction of a location from entity to location
 
-direction_of_location = (entity, target_location) ->
-  x = Math.abs(entity.x - target_location.x)
-  y = Math.abs(entity.y - target_location.y)
+direction_of_location = (start, end) ->
+  x = end.x - start.x
+  y = end.y - start.y
   Math.atan2(y, x)
 
 # The boid itself, every boid has a random starting location and random starting direction.
