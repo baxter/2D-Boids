@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2D Boids</title>
+    <script src="vendor/underscore-min.js"></script>
+    <script src="lib/boids_2d_angle_bug.js"></script>
+    <style>
+      #controls {
+        float: right;
+      }
+      
+      #textbox {
+        font-size: 2em;
+        margin-top: -50px;
+        margin-left: 150px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>2D Boids</h1>
+    <canvas id="boids_2d_angle_bug" width="530" height="230"></canvas>
+    <p id="boids_2d_angle_bug_text_box"></p>
+    <div id="controls">
+      <p>
+        <a href="javascript:void(0)" onclick="angle_bug.start()">Start</a> 
+        <a href="javascript:void(0)" onclick="angle_bug.stop()">Stop</a> 
+        <a href="javascript:void(0)" onclick="angle_bug.stop(); angle_bug.reset()">Reset</a>
+      </p>
+      <p>
+        <input id="boids_match_direction" type="checkbox" checked="yes" onclick="angle_bug.toggle('boids_match_direction')">
+        <label for="boids_match_direction">Boids like travelling in the same direction as their neighbours</label>
+      </p>
+      <p>
+        <input id="boids_keep_distance" type="checkbox" checked="yes" onclick="angle_bug.toggle('boids_keep_distance')">
+        <label for="boids_keep_distance">Boids dislike being too close to each other</label>
+      </p>
+      <p>
+        <input id="boids_move_toward_centre" type="checkbox" checked="yes" onclick="angle_bug.toggle('boids_move_toward_centre')">
+        <label for="boids_move_toward_centre">Boids like to move toward the centre of the flock</label>
+      </p>
+      <p>
+        <input id="draw_between_nearby" type="checkbox" onclick="angle_bug.toggle('draw_between_nearby')">
+        <label for="draw_between_nearby">Draw lines between nearby boids</label>
+      </p>
+    </div>
+  </body>
+  <script>
+    angle_bug = new AngleBug(document.getElementById('boids_2d_angle_bug'), document.getElementById('boids_2d_angle_bug_text_box'));
+  </script>
+</html>
